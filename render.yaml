@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: aiven-render-node-system
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PGSSL
+        value: true
+      - key: DATABASE_URL
+        sync: false
