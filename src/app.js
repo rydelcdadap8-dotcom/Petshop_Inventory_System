@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const path = require("path");
 
 const healthRoutes = require("./routes/health");
 const itemRoutes = require("./routes/items");
@@ -11,8 +12,9 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "..", "public")));
 
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.json({
     name: "Petshop Inventory API",
     status: "running"

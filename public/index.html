@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Petshop Inventory System</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Inventory Dashboard</p>
+        <h1>Petshop Inventory System</h1>
+      </div>
+      <button class="icon-button" id="refreshButton" type="button" title="Refresh products" aria-label="Refresh products">
+        <span aria-hidden="true">↻</span>
+      </button>
+    </header>
+
+    <main class="layout">
+      <section class="summary-grid" aria-label="Inventory summary">
+        <article class="metric">
+          <span class="metric-label">Products</span>
+          <strong id="totalProducts">0</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Total Stock</span>
+          <strong id="totalStock">0</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Low Stock</span>
+          <strong id="lowStock">0</strong>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <div class="inventory-panel">
+          <div class="toolbar">
+            <label class="field search-field">
+              <span>Search</span>
+              <input id="searchInput" type="search" placeholder="Product or supplier" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span>Category</span>
+              <input id="categoryFilter" type="text" placeholder="All categories" list="categoryOptions" autocomplete="off" />
+              <datalist id="categoryOptions"></datalist>
+            </label>
+            <button class="secondary-button" id="clearFiltersButton" type="button">Clear</button>
+          </div>
+
+          <div class="table-shell">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>Stock</th>
+                  <th>Price</th>
+                  <th>Supplier</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="productsTable"></tbody>
+            </table>
+            <div class="empty-state" id="emptyState" hidden>No products yet.</div>
+          </div>
+        </div>
+
+        <aside class="form-panel" aria-label="Product form">
+          <div class="form-heading">
+            <p class="eyebrow">Product Details</p>
+            <h2 id="formTitle">Add Product</h2>
+          </div>
+
+          <form id="productForm">
+            <input id="productId" type="hidden" />
+
+            <label class="field">
+              <span>Name</span>
+              <input id="nameInput" type="text" required placeholder="Dog Food" />
+            </label>
+
+            <label class="field">
+              <span>Category</span>
+              <input id="categoryInput" type="text" required placeholder="Food" />
+            </label>
+
+            <div class="form-row">
+              <label class="field">
+                <span>Quantity</span>
+                <input id="quantityInput" type="number" min="0" step="1" required value="0" />
+              </label>
+
+              <label class="field">
+                <span>Price</span>
+                <input id="priceInput" type="number" min="0" step="0.01" required value="0" />
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Supplier</span>
+              <input id="supplierInput" type="text" placeholder="Pet Supplier" />
+            </label>
+
+            <label class="field">
+              <span>Description</span>
+              <textarea id="descriptionInput" rows="4" placeholder="Short notes"></textarea>
+            </label>
+
+            <div class="button-row">
+              <button class="primary-button" type="submit" id="saveButton">Save Product</button>
+              <button class="secondary-button" type="button" id="resetButton">Reset</button>
+            </div>
+          </form>
+        </aside>
+      </section>
+
+      <p class="status-line" id="statusLine" role="status"></p>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
