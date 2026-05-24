@@ -4,6 +4,7 @@ const helmet = require("helmet");
 
 const healthRoutes = require("./routes/health");
 const itemRoutes = require("./routes/items");
+const productRoutes = require("./routes/products");
 
 const app = express();
 
@@ -13,13 +14,14 @@ app.use(express.json());
 
 app.get("/", (req, res) => {
   res.json({
-    name: "Node.js Aiven Render API",
+    name: "Petshop Inventory API",
     status: "running"
   });
 });
 
 app.use("/health", healthRoutes);
 app.use("/api/items", itemRoutes);
+app.use("/api/products", productRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

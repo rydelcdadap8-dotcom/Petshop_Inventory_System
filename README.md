@@ -1,13 +1,13 @@
-# Node.js + Aiven + Render System
+# Petshop Inventory System API
 
-This is a simple Node.js API built with Express. It connects to an Aiven PostgreSQL database and is ready to deploy on Render from GitHub.
+This is a Node.js API built with Express. It connects to an Aiven PostgreSQL database and is ready to deploy on Render from GitHub.
 
 ## What It Includes
 
 - Express server
 - Aiven PostgreSQL connection through `DATABASE_URL`
 - Health check endpoint for Render
-- Basic `items` API example
+- Petshop product inventory API
 - Database initializer
 - Render deployment config
 - GitHub-friendly project structure
@@ -49,12 +49,24 @@ The API will run at `http://localhost:3000`.
 ## API Endpoints
 
 - `GET /health` checks if the app and database are reachable.
-- `GET /api/items` lists items.
-- `POST /api/items` creates an item with JSON like:
+- `GET /api/products` lists products.
+- `GET /api/products?search=food` searches by product name or supplier.
+- `GET /api/products?category=Food` filters by category.
+- `GET /api/products/:id` gets one product.
+- `POST /api/products` creates a product.
+- `PUT /api/products/:id` updates a product.
+- `DELETE /api/products/:id` deletes a product.
+
+Create or update a product with JSON like:
 
   ```json
   {
-    "name": "First item"
+    "name": "Dog Food",
+    "category": "Food",
+    "quantity": 20,
+    "price": 12.5,
+    "supplier": "Aiven Pet Supplies",
+    "description": "Dry food for adult dogs"
   }
   ```
 
