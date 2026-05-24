@@ -9,11 +9,11 @@
   <body>
     <header class="topbar">
       <div>
-        <p class="eyebrow">Inventory Dashboard</p>
+        <p class="eyebrow">Philippines-Based Inventory</p>
         <h1>Petshop Inventory System</h1>
       </div>
-      <button class="icon-button" id="refreshButton" type="button" title="Refresh products" aria-label="Refresh products">
-        <span aria-hidden="true">↻</span>
+      <button class="icon-button" id="refreshButton" type="button" title="Refresh" aria-label="Refresh">
+        &#8635;
       </button>
     </header>
 
@@ -31,6 +31,10 @@
           <span class="metric-label">Low Stock</span>
           <strong id="lowStock">0</strong>
         </article>
+        <article class="metric">
+          <span class="metric-label">Inventory Value</span>
+          <strong id="inventoryValue">PHP 0.00</strong>
+        </article>
       </section>
 
       <section class="workspace">
@@ -38,7 +42,7 @@
           <div class="toolbar">
             <label class="field search-field">
               <span>Search</span>
-              <input id="searchInput" type="search" placeholder="Product or supplier" autocomplete="off" />
+              <input id="searchInput" type="search" placeholder="Name, SKU, barcode, supplier" autocomplete="off" />
             </label>
             <label class="field">
               <span>Category</span>
@@ -55,7 +59,7 @@
                   <th>Product</th>
                   <th>Category</th>
                   <th>Stock</th>
-                  <th>Price</th>
+                  <th>Selling Price</th>
                   <th>Supplier</th>
                   <th>Actions</th>
                 </tr>
@@ -80,10 +84,29 @@
               <input id="nameInput" type="text" required placeholder="Dog Food" />
             </label>
 
-            <label class="field">
-              <span>Category</span>
-              <input id="categoryInput" type="text" required placeholder="Food" />
-            </label>
+            <div class="form-row">
+              <label class="field">
+                <span>Category</span>
+                <input id="categoryInput" type="text" required placeholder="Food" />
+              </label>
+
+              <label class="field">
+                <span>Unit</span>
+                <input id="unitInput" type="text" required placeholder="pcs" value="pcs" />
+              </label>
+            </div>
+
+            <div class="form-row">
+              <label class="field">
+                <span>SKU</span>
+                <input id="skuInput" type="text" placeholder="PET-FOOD-001" />
+              </label>
+
+              <label class="field">
+                <span>Barcode</span>
+                <input id="barcodeInput" type="text" placeholder="Optional" />
+              </label>
+            </div>
 
             <div class="form-row">
               <label class="field">
@@ -92,14 +115,26 @@
               </label>
 
               <label class="field">
-                <span>Price</span>
+                <span>Low Stock Limit</span>
+                <input id="lowStockLimitInput" type="number" min="0" step="1" required value="5" />
+              </label>
+            </div>
+
+            <div class="form-row">
+              <label class="field">
+                <span>Cost Price (PHP)</span>
+                <input id="costPriceInput" type="number" min="0" step="0.01" required value="0" />
+              </label>
+
+              <label class="field">
+                <span>Selling Price (PHP)</span>
                 <input id="priceInput" type="number" min="0" step="0.01" required value="0" />
               </label>
             </div>
 
             <label class="field">
               <span>Supplier</span>
-              <input id="supplierInput" type="text" placeholder="Pet Supplier" />
+              <input id="supplierInput" type="text" placeholder="Local Supplier" />
             </label>
 
             <label class="field">
@@ -115,8 +150,60 @@
         </aside>
       </section>
 
+      <section class="history-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Audit Trail</p>
+            <h2>Recent Stock Movements</h2>
+          </div>
+        </div>
+        <div class="table-shell">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Product</th>
+                <th>Type</th>
+                <th>Qty</th>
+                <th>Previous</th>
+                <th>New</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="movementsTable"></tbody>
+          </table>
+          <div class="empty-state" id="movementsEmptyState" hidden>No stock movements yet.</div>
+        </div>
+      </section>
+
       <p class="status-line" id="statusLine" role="status"></p>
     </main>
+
+    <dialog id="stockDialog">
+      <form method="dialog" id="stockForm">
+        <div class="form-heading">
+          <p class="eyebrow">Stock Control</p>
+          <h2 id="stockDialogTitle">Update Stock</h2>
+        </div>
+        <input id="stockProductId" type="hidden" />
+        <input id="stockMovementType" type="hidden" />
+
+        <label class="field">
+          <span>Quantity</span>
+          <input id="stockQuantityInput" type="number" min="1" step="1" required value="1" />
+        </label>
+
+        <label class="field">
+          <span>Remarks</span>
+          <textarea id="stockRemarksInput" rows="3" placeholder="Delivery, sale, correction, etc."></textarea>
+        </label>
+
+        <div class="button-row">
+          <button class="primary-button" id="stockSaveButton" type="submit">Save Stock</button>
+          <button class="secondary-button" id="stockCancelButton" type="button">Cancel</button>
+        </div>
+      </form>
+    </dialog>
 
     <script src="/app.js"></script>
   </body>

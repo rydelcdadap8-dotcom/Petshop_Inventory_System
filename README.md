@@ -8,6 +8,9 @@ This is a Node.js API built with Express. It connects to an Aiven PostgreSQL dat
 - Aiven PostgreSQL connection through `DATABASE_URL`
 - Health check endpoint for Render
 - Petshop product inventory API
+- Philippine peso pricing
+- Stock in, stock out, and stock adjustment history
+- Dashboard totals and low-stock tracking
 - Database initializer
 - Render deployment config
 - GitHub-friendly project structure
@@ -56,6 +59,9 @@ The API will run at `http://localhost:3000`.
 - `POST /api/products` creates a product.
 - `PUT /api/products/:id` updates a product.
 - `DELETE /api/products/:id` deletes a product.
+- `POST /api/products/:id/stock` records stock in, stock out, or stock adjustment.
+- `GET /api/dashboard` returns totals and recent stock movements.
+- `GET /api/stock-movements` lists recent stock movement history.
 
 Create or update a product with JSON like:
 
@@ -63,12 +69,29 @@ Create or update a product with JSON like:
   {
     "name": "Dog Food",
     "category": "Food",
+    "sku": "PET-FOOD-001",
+    "barcode": "480000000001",
+    "unit": "pcs",
     "quantity": 20,
-    "price": 12.5,
-    "supplier": "Aiven Pet Supplies",
+    "costPrice": 500,
+    "price": 650,
+    "lowStockLimit": 5,
+    "supplier": "Local Pet Supplier",
     "description": "Dry food for adult dogs"
   }
   ```
+
+Record a stock movement with JSON like:
+
+  ```json
+  {
+    "movementType": "stock_in",
+    "quantity": 10,
+    "remarks": "New delivery"
+  }
+  ```
+
+Use `stock_in`, `stock_out`, or `adjustment` for `movementType`.
 
 ## Push To GitHub
 

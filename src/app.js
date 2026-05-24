@@ -6,6 +6,8 @@ const path = require("path");
 const healthRoutes = require("./routes/health");
 const itemRoutes = require("./routes/items");
 const productRoutes = require("./routes/products");
+const dashboardRoutes = require("./routes/dashboard");
+const stockMovementRoutes = require("./routes/stockMovements");
 
 const app = express();
 
@@ -24,6 +26,8 @@ app.get("/api", (req, res) => {
 app.use("/health", healthRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/stock-movements", stockMovementRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
