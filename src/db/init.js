@@ -1,16 +1,7 @@
 const pool = require("./pool");
+const ensureSchema = require("./schema");
 
-async function initDatabase() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS items (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-  `);
-}
-
-initDatabase()
+ensureSchema()
   .then(() => {
     console.log("Database is ready.");
   })
