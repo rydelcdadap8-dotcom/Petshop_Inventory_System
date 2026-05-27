@@ -1,4 +1,5 @@
 const express = require("express");
+const { requireRole } = require("../auth");
 const pool = require("../db/pool");
 
 const router = express.Router();
@@ -17,7 +18,7 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", requireRole("admin"), async (req, res, next) => {
   try {
     const { name } = req.body;
 

@@ -17,6 +17,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -39,6 +43,31 @@ textarea {
   padding: 24px clamp(18px, 4vw, 48px);
   background: var(--surface);
   border-bottom: 1px solid var(--line);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.session-chip {
+  display: grid;
+  gap: 2px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.session-chip span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.session-chip strong {
+  font-size: 13px;
+  text-transform: capitalize;
 }
 
 .eyebrow {
@@ -67,6 +96,27 @@ h2 {
 .layout {
   width: min(1240px, calc(100% - 32px));
   margin: 24px auto 40px;
+}
+
+.login-layout {
+  display: grid;
+  min-height: calc(100vh - 112px);
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.login-panel {
+  width: min(420px, 100%);
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.login-panel form {
+  display: grid;
+  gap: 14px;
 }
 
 .summary-grid {
@@ -101,6 +151,22 @@ h2 {
   grid-template-columns: minmax(0, 1fr) 360px;
   gap: 18px;
   align-items: start;
+}
+
+.customer-view .summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.customer-view .workspace {
+  grid-template-columns: 1fr;
+}
+
+.customer-view table {
+  min-width: 680px;
+}
+
+.customer-view .inventory-panel {
+  box-shadow: var(--shadow);
 }
 
 .inventory-panel,
@@ -243,6 +309,11 @@ button:disabled {
   padding: 0 16px;
 }
 
+.compact-button {
+  min-height: 34px;
+  padding: 0 12px;
+}
+
 .primary-button:hover {
   background: var(--teal-dark);
 }
@@ -376,6 +447,17 @@ dialog form {
 @media (max-width: 560px) {
   .topbar {
     align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .session-chip {
+    flex: 1 1 160px;
   }
 
   .summary-grid {

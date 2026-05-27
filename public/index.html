@@ -9,30 +9,57 @@
   <body>
     <header class="topbar">
       <div>
-        <p class="eyebrow">Philippines-Based Inventory</p>
         <h1>Petshop Inventory System</h1>
       </div>
-      <button class="icon-button" id="refreshButton" type="button" title="Refresh" aria-label="Refresh">
-        &#8635;
-      </button>
+      <div class="topbar-actions" id="sessionBar" hidden>
+        <div class="session-chip">
+          <span id="currentUser">Signed in</span>
+          <strong id="currentRole">User</strong>
+        </div>
+        <button class="secondary-button" id="logoutButton" type="button">Log Out</button>
+        <button class="icon-button" id="refreshButton" type="button" title="Refresh" aria-label="Refresh">
+          &#8635;
+        </button>
+      </div>
     </header>
 
-    <main class="layout">
+    <main class="login-layout" id="loginView">
+      <section class="login-panel" aria-label="Login">
+        <div class="form-heading">
+          <p class="eyebrow">Secure Access</p>
+          <h2>Log In</h2>
+        </div>
+        <form id="loginForm">
+          <label class="field">
+            <span>Username</span>
+            <input id="usernameInput" type="text" required autocomplete="username" />
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input id="passwordInput" type="password" required autocomplete="current-password" />
+          </label>
+          <button class="primary-button" id="loginButton" type="submit">Log In</button>
+        </form>
+        <p class="status-line" id="loginStatus" role="status"></p>
+      </section>
+    </main>
+
+    <main class="layout" id="appView" hidden>
       <section class="summary-grid" aria-label="Inventory summary">
-        <article class="metric">
-          <span class="metric-label">Products</span>
+        <article class="metric" id="totalProductsMetric">
+          <span class="metric-label" id="totalProductsLabel">Products</span>
           <strong id="totalProducts">0</strong>
         </article>
-        <article class="metric">
-          <span class="metric-label">Total Stock</span>
+        <article class="metric" id="totalStockMetric">
+          <span class="metric-label" id="totalStockLabel">Total Stock</span>
           <strong id="totalStock">0</strong>
         </article>
-        <article class="metric">
-          <span class="metric-label">Low Stock</span>
+        <article class="metric" id="lowStockMetric">
+          <span class="metric-label" id="lowStockLabel">Low Stock</span>
           <strong id="lowStock">0</strong>
         </article>
-        <article class="metric">
-          <span class="metric-label">Inventory Value</span>
+        <article class="metric" id="inventoryValueMetric">
+          <span class="metric-label" id="inventoryValueLabel">Inventory Value</span>
           <strong id="inventoryValue">PHP 0.00</strong>
         </article>
       </section>
@@ -58,10 +85,10 @@
                 <tr>
                   <th>Product</th>
                   <th>Category</th>
-                  <th>Stock</th>
-                  <th>Selling Price</th>
-                  <th>Supplier</th>
-                  <th>Actions</th>
+                  <th id="stockHeader">Stock</th>
+                  <th id="priceHeader">Selling Price</th>
+                  <th id="supplierHeader">Supplier</th>
+                  <th id="actionsHeader">Actions</th>
                 </tr>
               </thead>
               <tbody id="productsTable"></tbody>
@@ -70,7 +97,7 @@
           </div>
         </div>
 
-        <aside class="form-panel" aria-label="Product form">
+        <aside class="form-panel" id="productFormPanel" aria-label="Product form">
           <div class="form-heading">
             <p class="eyebrow">Product Details</p>
             <h2 id="formTitle">Add Product</h2>
@@ -150,7 +177,7 @@
         </aside>
       </section>
 
-      <section class="history-panel">
+      <section class="history-panel" id="historyPanel">
         <div class="section-heading">
           <div>
             <p class="eyebrow">Audit Trail</p>
@@ -182,7 +209,7 @@
     <dialog id="stockDialog">
       <form method="dialog" id="stockForm">
         <div class="form-heading">
-          <p class="eyebrow">Stock Control</p>
+          <p class="eyebrow" id="stockDialogEyebrow">Stock Control</p>
           <h2 id="stockDialogTitle">Update Stock</h2>
         </div>
         <input id="stockProductId" type="hidden" />
@@ -205,6 +232,6 @@
       </form>
     </dialog>
 
-    <script src="/app.js"></script>
+    <script src="/app.js?v=20260526-reminders"></script>
   </body>
 </html>

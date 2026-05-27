@@ -1,6 +1,41 @@
 const pool = require("./pool");
+const { hashPassword } = require("../auth");
+
+const defaultUsers = [
+  {
+    username: process.env.ADMIN_USERNAME || "admin",
+    password: process.env.ADMIN_PASSWORD || "admin123",
+    role: "admin"
+  },
+  {
+    username: process.env.USER_USERNAME || "user",
+    password: process.env.USER_PASSWORD || "user123",
+    role: "user"
+  }
+];
 
 async function ensureSchema() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS app_users (
+      id SERIAL PRIMARY KEY,
+      username TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL CHECK (role IN ('admin', 'user')),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  for (const user of defaultUsers) {
+    await pool.query(
+      `
+        INSERT INTO app_users (username, password_hash, role)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (username) DO NOTHING
+      `,
+      [user.username, hashPassword(user.password), user.role]
+    );
+  }
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS items (
       id SERIAL PRIMARY KEY,

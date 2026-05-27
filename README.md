@@ -11,6 +11,8 @@ This is a Node.js API built with Express. It connects to an Aiven PostgreSQL dat
 - Philippine peso pricing
 - Stock in, stock out, and stock adjustment history
 - Dashboard totals and low-stock tracking
+- Admin and user login with role-based access
+- Customer purchase reminders and next-product suggestions
 - Database initializer
 - Render deployment config
 - GitHub-friendly project structure
@@ -41,7 +43,13 @@ This is a Node.js API built with Express. It connects to an Aiven PostgreSQL dat
    npm run db:init
    ```
 
-5. Start the app:
+5. Add sample petshop products:
+
+   ```bash
+   npm run db:seed
+   ```
+
+6. Start the app:
 
    ```bash
    npm run dev
@@ -49,9 +57,19 @@ This is a Node.js API built with Express. It connects to an Aiven PostgreSQL dat
 
 The API will run at `http://localhost:3000`.
 
+Default login accounts are created automatically when the app starts:
+
+- Admin: `admin` / `admin123`
+- User: `user` / `user123`
+
+Set `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `USER_USERNAME`, and `USER_PASSWORD` in `.env` before the first run to change these seeded accounts. Admins can add, edit, delete, receive stock, adjust stock, see supplier/cost/low-stock details, and record purchases. Users get a customer dashboard where they can browse public product details, see price and available quantity, and buy products. After buying, customers see a refill reminder and next-product suggestions based on the item they purchased.
+
 ## API Endpoints
 
 - `GET /health` checks if the app and database are reachable.
+- `POST /api/auth/login` logs in and returns the signed-in user role.
+- `GET /api/auth/me` returns the current signed-in user.
+- `POST /api/auth/logout` logs out the current session.
 - `GET /api/products` lists products.
 - `GET /api/products?search=food` searches by product name or supplier.
 - `GET /api/products?category=Food` filters by category.

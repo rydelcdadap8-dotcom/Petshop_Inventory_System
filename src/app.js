@@ -3,6 +3,8 @@ const cors = require("cors");
 const helmet = require("helmet");
 const path = require("path");
 
+const { requireAuth } = require("./auth");
+const authRoutes = require("./routes/auth");
 const healthRoutes = require("./routes/health");
 const itemRoutes = require("./routes/items");
 const productRoutes = require("./routes/products");
@@ -24,10 +26,11 @@ app.get("/api", (req, res) => {
 });
 
 app.use("/health", healthRoutes);
-app.use("/api/items", itemRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/stock-movements", stockMovementRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/items", requireAuth, itemRoutes);
+app.use("/api/products", requireAuth, productRoutes);
+app.use("/api/dashboard", requireAuth, dashboardRoutes);
+app.use("/api/stock-movements", requireAuth, stockMovementRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

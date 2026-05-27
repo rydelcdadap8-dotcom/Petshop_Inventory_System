@@ -5,6 +5,21 @@ const router = express.Router();
 
 router.get("/", async (req, res, next) => {
   try {
+    if (req.user.role === "user") {
+      const result = await pool.query(`
+        SELECT
+          COUNT(*)::INTEGER AS total_products,
+          COUNT(*) FILTER (WHERE quantity > 0)::INTEGER AS available_products,
+          COUNT(DISTINCT category)::INTEGER AS total_categories
+        FROM products
+      `);
+
+      return res.json({
+        summary: result.rows[0],
+        recentMovements: []
+      });
+    }
+
     const result = await pool.query(`
       SELECT
         COUNT(*)::INTEGER AS total_products,
@@ -31,7 +46,7 @@ router.get("/", async (req, res, next) => {
       LIMIT 10
     `);
 
-    res.json({
+    return res.json({
       summary: result.rows[0],
       recentMovements: recentMovements.rows
     });

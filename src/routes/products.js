@@ -1,4 +1,5 @@
 const express = require("express");
+const { requireRole } = require("../auth");
 const pool = require("../db/pool");
 
 const router = express.Router();
@@ -58,6 +59,87 @@ function productColumns() {
   `;
 }
 
+function publicProduct(product) {
+  return {
+    id: product.id,
+    name: product.name,
+    category: product.category,
+    unit: product.unit,
+    quantity: Number(product.quantity || 0),
+    price: product.price,
+    description: product.description,
+    in_stock: Number(product.quantity || 0) > 0
+  };
+}
+
+function addDays(date, days) {
+  const reminderDate = new Date(date);
+  reminderDate.setDate(reminderDate.getDate() + days);
+  return reminderDate.toISOString().slice(0, 10);
+}
+
+function buildPurchaseInsight(product) {
+  const name = String(product.name || "").toLowerCase();
+  const category = String(product.category || "").toLowerCase();
+  const text = `${name} ${category}`;
+  let days = 30;
+  let reminder = `Buy ${product.name} again`;
+  let suggestions = ["Pet treats", "Grooming shampoo"];
+
+  if (text.includes("cat")) {
+    reminder = `Buy ${product.name} again`;
+    suggestions = ["Cat litter", "Cat treats", "Cat toys"];
+  }
+
+  if (text.includes("dog")) {
+    reminder = `Buy ${product.name} again`;
+    suggestions = ["Dog treats", "Chew toys", "Dog shampoo"];
+  }
+
+  if (text.includes("food") || text.includes("kibble")) {
+    days = 30;
+  }
+
+  if (text.includes("vitamin") || text.includes("supplement")) {
+    days = 14;
+    reminder = `Check ${product.name} supply`;
+    suggestions = ["Pet supplements", "Healthy treats"];
+  }
+
+  if (text.includes("flea") || text.includes("tick") || text.includes("deworm")) {
+    days = 30;
+    reminder = `Schedule the next ${product.name} treatment`;
+    suggestions = ["Pet shampoo", "Grooming brush"];
+  }
+
+  if (text.includes("litter")) {
+    days = 21;
+    suggestions = ["Cat food", "Odor control spray"];
+  }
+
+  return {
+    reminder,
+    reminderDate: addDays(new Date(), days),
+    suggestions
+  };
+}
+
+function requireStockMovementAccess(req, res, next) {
+  const movementType = typeof req.body.movementType === "string" ? req.body.movementType : "";
+
+  if (req.user.role === "admin") {
+    return next();
+  }
+
+  if (req.user.role === "user" && movementType === "stock_out") {
+    return next();
+  }
+
+  return res.status(403).json({
+    message: "Users can only record customer purchases."
+  });
+}
+
 router.get("/", async (req, res, next) => {
   try {
     const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
@@ -94,7 +176,7 @@ router.get("/", async (req, res, next) => {
     );
 
     res.json({
-      products: result.rows
+      products: req.user.role === "admin" ? result.rows : result.rows.map(publicProduct)
     });
   } catch (error) {
     next(error);
@@ -119,14 +201,14 @@ router.get("/:id", async (req, res, next) => {
     }
 
     return res.json({
-      product: result.rows[0]
+      product: req.user.role === "admin" ? result.rows[0] : publicProduct(result.rows[0])
     });
   } catch (error) {
     return next(error);
   }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", requireRole("admin"), async (req, res, next) => {
   try {
     const product = normalizeProduct(req.body);
     const validationError = validateProduct(product);
@@ -178,7 +260,7 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", requireRole("admin"), async (req, res, next) => {
   try {
     const product = normalizeProduct(req.body);
     const validationError = validateProduct(product);
@@ -238,7 +320,7 @@ router.put("/:id", async (req, res, next) => {
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", requireRole("admin"), async (req, res, next) => {
   try {
     const result = await pool.query(
       "DELETE FROM products WHERE id = $1 RETURNING id",
@@ -257,7 +339,7 @@ router.delete("/:id", async (req, res, next) => {
   }
 });
 
-router.post("/:id/stock", async (req, res, next) => {
+router.post("/:id/stock", requireStockMovementAccess, async (req, res, next) => {
   const client = await pool.connect();
 
   try {
@@ -280,7 +362,7 @@ router.post("/:id/stock", async (req, res, next) => {
     await client.query("BEGIN");
 
     const current = await client.query(
-      "SELECT quantity FROM products WHERE id = $1 FOR UPDATE",
+      "SELECT id, name, category, unit, quantity FROM products WHERE id = $1 FOR UPDATE",
       [req.params.id]
     );
 
@@ -292,6 +374,7 @@ router.post("/:id/stock", async (req, res, next) => {
     }
 
     const previousQuantity = Number(current.rows[0].quantity);
+    const currentProduct = current.rows[0];
     let newQuantity = previousQuantity;
 
     if (movementType === "stock_in") {
@@ -343,7 +426,11 @@ router.post("/:id/stock", async (req, res, next) => {
 
     return res.json({
       product: productResult.rows[0],
-      movement: movementResult.rows[0]
+      movement: movementResult.rows[0],
+      purchaseInsight:
+        req.user.role === "user" && movementType === "stock_out"
+          ? buildPurchaseInsight(currentProduct)
+          : null
     });
   } catch (error) {
     await client.query("ROLLBACK");
