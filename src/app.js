@@ -9,6 +9,7 @@ const healthRoutes = require("./routes/health");
 const itemRoutes = require("./routes/items");
 const productRoutes = require("./routes/products");
 const dashboardRoutes = require("./routes/dashboard");
+const orderRoutes = require("./routes/orders");
 const stockMovementRoutes = require("./routes/stockMovements");
 
 const app = express();
@@ -30,6 +31,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/items", requireAuth, itemRoutes);
 app.use("/api/products", requireAuth, productRoutes);
 app.use("/api/dashboard", requireAuth, dashboardRoutes);
+app.use("/api/orders", requireAuth, orderRoutes);
 app.use("/api/stock-movements", requireAuth, stockMovementRoutes);
 
 app.use((req, res) => {

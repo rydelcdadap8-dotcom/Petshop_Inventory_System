@@ -91,6 +91,31 @@ async function ensureSchema() {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS stock_movements_product_idx ON stock_movements (product_id);
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS customer_orders (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+      product_id INTEGER REFERENCES products(id) ON DELETE SET NULL,
+      product_name TEXT NOT NULL,
+      quantity INTEGER NOT NULL CHECK (quantity > 0),
+      unit_price NUMERIC(10, 2) NOT NULL CHECK (unit_price >= 0),
+      total_amount NUMERIC(12, 2) NOT NULL CHECK (total_amount >= 0),
+      payment_method TEXT NOT NULL CHECK (payment_method IN ('gcash', 'cod')),
+      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'preparing', 'completed', 'cancelled')),
+      purchase_insight JSONB,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS customer_orders_user_idx ON customer_orders (user_id);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS customer_orders_status_idx ON customer_orders (status);
+  `);
 }
 
 module.exports = ensureSchema;

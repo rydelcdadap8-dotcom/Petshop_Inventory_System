@@ -171,6 +171,7 @@ h2 {
 
 .inventory-panel,
 .form-panel,
+.orders-panel,
 .history-panel {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -199,6 +200,7 @@ h2 {
 }
 
 input,
+select,
 textarea {
   width: 100%;
   min-height: 42px;
@@ -214,6 +216,7 @@ textarea {
 }
 
 input:focus,
+select:focus,
 textarea:focus {
   border-color: var(--teal);
   outline: 3px solid rgba(15, 118, 110, 0.14);
@@ -281,6 +284,36 @@ th {
 .stock-pill.low {
   background: rgba(180, 35, 24, 0.1);
   color: var(--rose);
+}
+
+.status-pill {
+  display: inline-flex;
+  min-width: 88px;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #edf2f4;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.status-pill.preparing {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--blue);
+}
+
+.status-pill.completed {
+  background: rgba(15, 118, 110, 0.1);
+  color: var(--teal-dark);
+}
+
+.status-pill.cancelled {
+  background: #fff1f0;
+  color: var(--rose);
+}
+
+.status-select {
+  min-width: 130px;
 }
 
 .action-row {
@@ -428,6 +461,36 @@ dialog form {
   gap: 14px;
 }
 
+.payment-options {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.payment-options legend {
+  padding: 0 4px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.payment-options label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.payment-options input {
+  width: auto;
+  min-height: auto;
+}
+
+.orders-panel,
 .history-panel {
   margin-top: 18px;
 }

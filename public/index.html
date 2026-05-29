@@ -177,6 +177,33 @@
         </aside>
       </section>
 
+      <section class="orders-panel" id="ordersPanel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" id="ordersEyebrow">Orders</p>
+            <h2 id="ordersTitle">My Orders</h2>
+          </div>
+        </div>
+        <div class="table-shell">
+          <table>
+            <thead>
+              <tr>
+                <th id="orderCustomerHeader">Customer</th>
+                <th>Date</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th id="orderActionHeader">Action</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTable"></tbody>
+          </table>
+          <div class="empty-state" id="ordersEmptyState" hidden>No orders yet.</div>
+        </div>
+      </section>
+
       <section class="history-panel" id="historyPanel">
         <div class="section-heading">
           <div>
@@ -220,6 +247,18 @@
           <input id="stockQuantityInput" type="number" min="1" step="1" required value="1" />
         </label>
 
+        <fieldset class="payment-options" id="paymentOptions">
+          <legend>Payment Method</legend>
+          <label>
+            <input type="radio" name="paymentMethod" value="gcash" checked />
+            <span>GCash</span>
+          </label>
+          <label>
+            <input type="radio" name="paymentMethod" value="cod" />
+            <span>Cash on Delivery</span>
+          </label>
+        </fieldset>
+
         <label class="field">
           <span>Remarks</span>
           <textarea id="stockRemarksInput" rows="3" placeholder="Delivery, sale, correction, etc."></textarea>
@@ -232,6 +271,6 @@
       </form>
     </dialog>
 
-    <script src="/app.js?v=20260526-reminders"></script>
+    <script src="/app.js?v=20260529-orders"></script>
   </body>
 </html>

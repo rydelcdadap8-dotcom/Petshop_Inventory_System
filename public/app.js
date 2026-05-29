@@ -1,6 +1,7 @@
 const state = {
   products: [],
   movements: [],
+  orders: [],
   editingId: null,
   token: window.localStorage.getItem("petshopToken") || "",
   user: JSON.parse(window.localStorage.getItem("petshopUser") || "null")
@@ -31,6 +32,13 @@ const elements = {
   emptyState: document.querySelector("#emptyState"),
   movementsTable: document.querySelector("#movementsTable"),
   movementsEmptyState: document.querySelector("#movementsEmptyState"),
+  ordersPanel: document.querySelector("#ordersPanel"),
+  ordersEyebrow: document.querySelector("#ordersEyebrow"),
+  ordersTitle: document.querySelector("#ordersTitle"),
+  ordersTable: document.querySelector("#ordersTable"),
+  ordersEmptyState: document.querySelector("#ordersEmptyState"),
+  orderCustomerHeader: document.querySelector("#orderCustomerHeader"),
+  orderActionHeader: document.querySelector("#orderActionHeader"),
   historyPanel: document.querySelector("#historyPanel"),
   totalProductsMetric: document.querySelector("#totalProductsMetric"),
   totalStockMetric: document.querySelector("#totalStockMetric"),
@@ -69,6 +77,7 @@ const elements = {
   stockProductId: document.querySelector("#stockProductId"),
   stockMovementType: document.querySelector("#stockMovementType"),
   stockQuantityInput: document.querySelector("#stockQuantityInput"),
+  paymentOptions: document.querySelector("#paymentOptions"),
   stockRemarksInput: document.querySelector("#stockRemarksInput"),
   stockSaveButton: document.querySelector("#stockSaveButton"),
   stockCancelButton: document.querySelector("#stockCancelButton")
@@ -87,6 +96,21 @@ function dateTime(value) {
     timeStyle: "short",
     timeZone: "Asia/Manila"
   }).format(new Date(value));
+}
+
+function paymentLabel(value) {
+  return value === "gcash" ? "GCash" : "Cash on Delivery";
+}
+
+function statusLabel(value) {
+  const labels = {
+    pending: "Pending",
+    preparing: "Preparing",
+    completed: "Completed",
+    cancelled: "Cancelled"
+  };
+
+  return labels[value] || value;
 }
 
 function setStatus(message, type = "info") {
@@ -163,6 +187,10 @@ function applyRoleUi() {
   document.body.classList.toggle("customer-view", isCustomer());
   elements.productFormPanel.hidden = !isAdmin();
   elements.historyPanel.hidden = !isAdmin();
+  elements.ordersEyebrow.textContent = isAdmin() ? "Customer Orders" : "Orders";
+  elements.ordersTitle.textContent = isAdmin() ? "Incoming Orders" : "My Orders";
+  elements.orderCustomerHeader.hidden = !isAdmin();
+  elements.orderActionHeader.hidden = !isAdmin();
   elements.actionsHeader.textContent = isAdmin() ? "Actions" : "Buy";
   elements.stockHeader.textContent = isAdmin() ? "Stock" : "Available Qty";
   elements.priceHeader.textContent = isAdmin() ? "Selling Price" : "Price";
@@ -346,6 +374,33 @@ function renderMovements() {
   elements.movementsEmptyState.hidden = state.movements.length > 0;
 }
 
+function renderOrders() {
+  elements.ordersTable.innerHTML = state.orders
+    .map((order) => `
+      <tr>
+        ${isAdmin() ? `<td>${escapeHtml(order.username || "Customer")}</td>` : ""}
+        <td>${dateTime(order.created_at)}</td>
+        <td>${escapeHtml(order.product_name)}</td>
+        <td>${order.quantity}</td>
+        <td>${money(order.total_amount)}</td>
+        <td>${paymentLabel(order.payment_method)}</td>
+        <td><span class="status-pill ${escapeHtml(order.status)}">${statusLabel(order.status)}</span></td>
+        ${isAdmin() ? `
+          <td>
+            <select class="status-select" data-order-id="${order.id}">
+              ${["pending", "preparing", "completed", "cancelled"].map((status) => `
+                <option value="${status}" ${order.status === status ? "selected" : ""}>${statusLabel(status)}</option>
+              `).join("")}
+            </select>
+          </td>
+        ` : ""}
+      </tr>
+    `)
+    .join("");
+
+  elements.ordersEmptyState.hidden = state.orders.length > 0;
+}
+
 async function apiRequest(url, options = {}) {
   const headers = {
     "Content-Type": "application/json",
@@ -444,12 +499,19 @@ async function loadDashboard() {
   renderMovements();
 }
 
+async function loadOrders() {
+  const data = await apiRequest("/api/orders");
+  state.orders = data.orders || [];
+  renderOrders();
+}
+
 async function refreshAll(message = "Inventory is up to date.") {
   setStatus("Loading inventory...");
 
   try {
     await loadProducts();
     await loadDashboard();
+    await loadOrders();
     setStatus(message);
   } catch (error) {
     setStatus(error.message, "error");
@@ -516,6 +578,7 @@ function openStockDialog(id, movementType) {
   elements.stockDialogEyebrow.textContent = customerPurchase ? "Checkout" : "Stock Control";
   elements.stockDialogTitle.textContent = customerPurchase ? product.name : `${movementLabel(movementType)}: ${product.name}`;
   elements.stockQuantityInput.closest(".field").querySelector("span").textContent = customerPurchase ? "Quantity to Buy" : "Quantity";
+  elements.paymentOptions.hidden = !customerPurchase;
   elements.stockRemarksInput.closest(".field").hidden = customerPurchase;
   elements.stockSaveButton.textContent = customerPurchase ? "Buy" : "Save Stock";
   elements.stockDialog.showModal();
@@ -527,24 +590,35 @@ async function saveStock(event) {
 
   const id = elements.stockProductId.value;
   const movementType = elements.stockMovementType.value;
+  const customerPurchase = movementType === "stock_out" && !isAdmin();
+  const paymentMethod = document.querySelector("input[name='paymentMethod']:checked")?.value || "gcash";
 
   elements.stockSaveButton.disabled = true;
-  setStatus(movementType === "stock_out" && !isAdmin() ? "Placing order..." : "Saving stock movement...");
+  setStatus(customerPurchase ? "Placing order..." : "Saving stock movement...");
 
   try {
-    const data = await apiRequest(`/api/products/${id}/stock`, {
-      method: "POST",
-      body: JSON.stringify({
-        movementType,
-        quantity: Number(elements.stockQuantityInput.value || 0),
-        remarks: elements.stockRemarksInput.value.trim()
-      })
-    });
+    const data = customerPurchase
+      ? await apiRequest("/api/orders", {
+          method: "POST",
+          body: JSON.stringify({
+            productId: Number(id),
+            quantity: Number(elements.stockQuantityInput.value || 0),
+            paymentMethod
+          })
+        })
+      : await apiRequest(`/api/products/${id}/stock`, {
+          method: "POST",
+          body: JSON.stringify({
+            movementType,
+            quantity: Number(elements.stockQuantityInput.value || 0),
+            remarks: elements.stockRemarksInput.value.trim()
+          })
+        });
 
     elements.stockDialog.close();
     await refreshAll(
-      movementType === "stock_out" && !isAdmin()
-        ? purchaseInsightMessage(data.purchaseInsight)
+      customerPurchase
+        ? `${purchaseInsightMessage(data.purchaseInsight)} Admin will process your ${paymentLabel(paymentMethod)} order.`
         : "Stock updated."
     );
   } catch (error) {
@@ -607,6 +681,30 @@ elements.productsTable.addEventListener("click", (event) => {
   if (action === "edit") editProduct(id);
   if (action === "delete") deleteProduct(id);
   if (["stock_in", "stock_out", "adjustment"].includes(action)) openStockDialog(id, action);
+});
+
+elements.ordersTable.addEventListener("change", async (event) => {
+  const select = event.target.closest("select[data-order-id]");
+  if (!select || !isAdmin()) return;
+
+  select.disabled = true;
+  setStatus("Updating order...");
+
+  try {
+    await apiRequest(`/api/orders/${select.dataset.orderId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status: select.value
+      })
+    });
+    await loadOrders();
+    setStatus("Order updated.");
+  } catch (error) {
+    setStatus(error.message, "error");
+    await loadOrders();
+  } finally {
+    select.disabled = false;
+  }
 });
 
 async function initialize() {

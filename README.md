@@ -79,6 +79,9 @@ Set `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `USER_USERNAME`, and `USER_PASSWORD` in 
 - `DELETE /api/products/:id` deletes a product.
 - `POST /api/products/:id/stock` records stock in, stock out, or stock adjustment.
 - `GET /api/dashboard` returns totals and recent stock movements.
+- `GET /api/orders` lists the current user's orders, or all orders for admins.
+- `POST /api/orders` creates a customer order with `gcash` or `cod` payment.
+- `PATCH /api/orders/:id/status` lets admins update order status.
 - `GET /api/stock-movements` lists recent stock movement history.
 
 Create or update a product with JSON like:
