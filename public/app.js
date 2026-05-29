@@ -3,6 +3,7 @@ const state = {
   movements: [],
   orders: [],
   editingId: null,
+  activeView: "products",
   token: window.localStorage.getItem("petshopToken") || "",
   user: JSON.parse(window.localStorage.getItem("petshopUser") || "null")
 };
@@ -20,6 +21,10 @@ const elements = {
   loginStatus: document.querySelector("#loginStatus"),
   logoutButton: document.querySelector("#logoutButton"),
   refreshButton: document.querySelector("#refreshButton"),
+  productsNavButton: document.querySelector("#productsNavButton"),
+  ordersNavButton: document.querySelector("#ordersNavButton"),
+  productsView: document.querySelector("#productsView"),
+  summaryGrid: document.querySelector(".summary-grid"),
   searchInput: document.querySelector("#searchInput"),
   categoryFilter: document.querySelector("#categoryFilter"),
   categoryOptions: document.querySelector("#categoryOptions"),
@@ -38,6 +43,8 @@ const elements = {
   ordersTable: document.querySelector("#ordersTable"),
   ordersEmptyState: document.querySelector("#ordersEmptyState"),
   orderCustomerHeader: document.querySelector("#orderCustomerHeader"),
+  orderContactHeader: document.querySelector("#orderContactHeader"),
+  orderAddressHeader: document.querySelector("#orderAddressHeader"),
   orderActionHeader: document.querySelector("#orderActionHeader"),
   historyPanel: document.querySelector("#historyPanel"),
   totalProductsMetric: document.querySelector("#totalProductsMetric"),
@@ -78,6 +85,11 @@ const elements = {
   stockMovementType: document.querySelector("#stockMovementType"),
   stockQuantityInput: document.querySelector("#stockQuantityInput"),
   paymentOptions: document.querySelector("#paymentOptions"),
+  checkoutDetails: document.querySelector("#checkoutDetails"),
+  customerNameInput: document.querySelector("#customerNameInput"),
+  customerPhoneInput: document.querySelector("#customerPhoneInput"),
+  deliveryAddressInput: document.querySelector("#deliveryAddressInput"),
+  orderNoteInput: document.querySelector("#orderNoteInput"),
   stockRemarksInput: document.querySelector("#stockRemarksInput"),
   stockSaveButton: document.querySelector("#stockSaveButton"),
   stockCancelButton: document.querySelector("#stockCancelButton")
@@ -106,11 +118,24 @@ function statusLabel(value) {
   const labels = {
     pending: "Pending",
     preparing: "Preparing",
+    delivery: "Delivery",
     completed: "Completed",
     cancelled: "Cancelled"
   };
 
   return labels[value] || value;
+}
+
+function setActiveView(view) {
+  state.activeView = view;
+  const showingOrders = view === "orders";
+
+  elements.productsView.hidden = showingOrders;
+  elements.summaryGrid.hidden = showingOrders;
+  elements.ordersPanel.hidden = !showingOrders;
+  elements.historyPanel.hidden = showingOrders || !isAdmin();
+  elements.productsNavButton.classList.toggle("active", !showingOrders);
+  elements.ordersNavButton.classList.toggle("active", showingOrders);
 }
 
 function setStatus(message, type = "info") {
@@ -186,10 +211,11 @@ function applyRoleUi() {
   elements.currentRole.textContent = state.user.role;
   document.body.classList.toggle("customer-view", isCustomer());
   elements.productFormPanel.hidden = !isAdmin();
-  elements.historyPanel.hidden = !isAdmin();
   elements.ordersEyebrow.textContent = isAdmin() ? "Customer Orders" : "Orders";
   elements.ordersTitle.textContent = isAdmin() ? "Incoming Orders" : "My Orders";
   elements.orderCustomerHeader.hidden = !isAdmin();
+  elements.orderContactHeader.hidden = !isAdmin();
+  elements.orderAddressHeader.hidden = !isAdmin();
   elements.orderActionHeader.hidden = !isAdmin();
   elements.actionsHeader.textContent = isAdmin() ? "Actions" : "Buy";
   elements.stockHeader.textContent = isAdmin() ? "Stock" : "Available Qty";
@@ -204,6 +230,8 @@ function applyRoleUi() {
   document.querySelectorAll("[data-admin-only]").forEach((element) => {
     element.hidden = !isAdmin();
   });
+
+  setActiveView(state.activeView);
 }
 
 function escapeHtml(value) {
@@ -379,6 +407,8 @@ function renderOrders() {
     .map((order) => `
       <tr>
         ${isAdmin() ? `<td>${escapeHtml(order.username || "Customer")}</td>` : ""}
+        ${isAdmin() ? `<td>${escapeHtml(order.customer_name || "None")}<br><span class="muted-text">${escapeHtml(order.customer_phone || "")}</span></td>` : ""}
+        ${isAdmin() ? `<td>${escapeHtml(order.delivery_address || "None")}${order.order_note ? `<br><span class="muted-text">${escapeHtml(order.order_note)}</span>` : ""}</td>` : ""}
         <td>${dateTime(order.created_at)}</td>
         <td>${escapeHtml(order.product_name)}</td>
         <td>${order.quantity}</td>
@@ -388,7 +418,7 @@ function renderOrders() {
         ${isAdmin() ? `
           <td>
             <select class="status-select" data-order-id="${order.id}">
-              ${["pending", "preparing", "completed", "cancelled"].map((status) => `
+              ${["pending", "preparing", "delivery", "completed", "cancelled"].map((status) => `
                 <option value="${status}" ${order.status === status ? "selected" : ""}>${statusLabel(status)}</option>
               `).join("")}
             </select>
@@ -432,6 +462,8 @@ function showLogin(message = "Please log in to continue.", type = "error") {
   clearSession();
   state.products = [];
   state.movements = [];
+  state.orders = [];
+  state.activeView = "products";
   resetForm();
   applyRoleUi();
   setLoginStatus(message, type);
@@ -579,8 +611,16 @@ function openStockDialog(id, movementType) {
   elements.stockDialogTitle.textContent = customerPurchase ? product.name : `${movementLabel(movementType)}: ${product.name}`;
   elements.stockQuantityInput.closest(".field").querySelector("span").textContent = customerPurchase ? "Quantity to Buy" : "Quantity";
   elements.paymentOptions.hidden = !customerPurchase;
+  elements.checkoutDetails.hidden = !customerPurchase;
   elements.stockRemarksInput.closest(".field").hidden = customerPurchase;
   elements.stockSaveButton.textContent = customerPurchase ? "Buy" : "Save Stock";
+  if (customerPurchase) {
+    const savedDetails = JSON.parse(window.localStorage.getItem("petshopCustomerDetails") || "{}");
+    elements.customerNameInput.value = savedDetails.customerName || "";
+    elements.customerPhoneInput.value = savedDetails.customerPhone || "";
+    elements.deliveryAddressInput.value = savedDetails.deliveryAddress || "";
+    elements.orderNoteInput.value = "";
+  }
   elements.stockDialog.showModal();
   elements.stockQuantityInput.focus();
 }
@@ -592,6 +632,15 @@ async function saveStock(event) {
   const movementType = elements.stockMovementType.value;
   const customerPurchase = movementType === "stock_out" && !isAdmin();
   const paymentMethod = document.querySelector("input[name='paymentMethod']:checked")?.value || "gcash";
+  const customerName = elements.customerNameInput.value.trim();
+  const customerPhone = elements.customerPhoneInput.value.trim();
+  const deliveryAddress = elements.deliveryAddressInput.value.trim();
+  const orderNote = elements.orderNoteInput.value.trim();
+
+  if (customerPurchase && (!customerName || !customerPhone || !deliveryAddress)) {
+    setStatus("Please complete your name, phone number, and delivery address.", "error");
+    return;
+  }
 
   elements.stockSaveButton.disabled = true;
   setStatus(customerPurchase ? "Placing order..." : "Saving stock movement...");
@@ -603,7 +652,11 @@ async function saveStock(event) {
           body: JSON.stringify({
             productId: Number(id),
             quantity: Number(elements.stockQuantityInput.value || 0),
-            paymentMethod
+            paymentMethod,
+            customerName,
+            customerPhone,
+            deliveryAddress,
+            orderNote
           })
         })
       : await apiRequest(`/api/products/${id}/stock`, {
@@ -616,6 +669,14 @@ async function saveStock(event) {
         });
 
     elements.stockDialog.close();
+    if (customerPurchase) {
+      window.localStorage.setItem("petshopCustomerDetails", JSON.stringify({
+        customerName,
+        customerPhone,
+        deliveryAddress
+      }));
+      state.activeView = "orders";
+    }
     await refreshAll(
       customerPurchase
         ? `${purchaseInsightMessage(data.purchaseInsight)} Admin will process your ${paymentLabel(paymentMethod)} order.`
@@ -655,6 +716,8 @@ elements.resetButton.addEventListener("click", resetForm);
 elements.refreshButton.addEventListener("click", () => refreshAll());
 elements.stockForm.addEventListener("submit", saveStock);
 elements.stockCancelButton.addEventListener("click", () => elements.stockDialog.close());
+elements.productsNavButton.addEventListener("click", () => setActiveView("products"));
+elements.ordersNavButton.addEventListener("click", () => setActiveView("orders"));
 
 elements.clearFiltersButton.addEventListener("click", () => {
   elements.searchInput.value = "";

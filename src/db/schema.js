@@ -102,11 +102,34 @@ async function ensureSchema() {
       unit_price NUMERIC(10, 2) NOT NULL CHECK (unit_price >= 0),
       total_amount NUMERIC(12, 2) NOT NULL CHECK (total_amount >= 0),
       payment_method TEXT NOT NULL CHECK (payment_method IN ('gcash', 'cod')),
-      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'preparing', 'completed', 'cancelled')),
+      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'preparing', 'delivery', 'completed', 'cancelled')),
+      customer_name TEXT,
+      customer_phone TEXT,
+      delivery_address TEXT,
+      order_note TEXT,
       purchase_insight JSONB,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE customer_orders
+      ADD COLUMN IF NOT EXISTS customer_name TEXT,
+      ADD COLUMN IF NOT EXISTS customer_phone TEXT,
+      ADD COLUMN IF NOT EXISTS delivery_address TEXT,
+      ADD COLUMN IF NOT EXISTS order_note TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE customer_orders
+      DROP CONSTRAINT IF EXISTS customer_orders_status_check;
+  `);
+
+  await pool.query(`
+    ALTER TABLE customer_orders
+      ADD CONSTRAINT customer_orders_status_check
+      CHECK (status IN ('pending', 'preparing', 'delivery', 'completed', 'cancelled'));
   `);
 
   await pool.query(`

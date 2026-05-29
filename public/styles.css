@@ -98,6 +98,24 @@ h2 {
   margin: 24px auto 40px;
 }
 
+.app-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.nav-button {
+  min-height: 40px;
+  padding: 0 16px;
+  background: #edf2f4;
+  color: var(--ink);
+}
+
+.nav-button.active {
+  background: var(--ink);
+  color: #fff;
+}
+
 .login-layout {
   display: grid;
   min-height: calc(100vh - 112px);
@@ -260,6 +278,11 @@ th {
   font-size: 13px;
 }
 
+.muted-text {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .price-cell {
   display: grid;
   gap: 4px;
@@ -305,6 +328,11 @@ th {
 .status-pill.completed {
   background: rgba(15, 118, 110, 0.1);
   color: var(--teal-dark);
+}
+
+.status-pill.delivery {
+  background: rgba(183, 121, 31, 0.13);
+  color: var(--gold);
 }
 
 .status-pill.cancelled {
@@ -488,6 +516,11 @@ dialog form {
 .payment-options input {
   width: auto;
   min-height: auto;
+}
+
+.checkout-details {
+  display: grid;
+  gap: 12px;
 }
 
 .orders-panel,

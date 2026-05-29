@@ -5,7 +5,7 @@ const pool = require("../db/pool");
 const { buildPurchaseInsight } = require("../purchaseInsights");
 
 const router = express.Router();
-const orderStatuses = ["pending", "preparing", "completed", "cancelled"];
+const orderStatuses = ["pending", "preparing", "delivery", "completed", "cancelled"];
 const paymentMethods = ["gcash", "cod"];
 
 function orderColumns() {
@@ -20,6 +20,10 @@ function orderColumns() {
     co.total_amount,
     co.payment_method,
     co.status,
+    co.customer_name,
+    co.customer_phone,
+    co.delivery_address,
+    co.order_note,
     co.purchase_insight,
     co.created_at,
     co.updated_at
@@ -71,6 +75,10 @@ router.post("/", requireRole("user"), async (req, res, next) => {
     const productId = Number(req.body.productId);
     const quantity = Number(req.body.quantity);
     const paymentMethod = typeof req.body.paymentMethod === "string" ? req.body.paymentMethod : "";
+    const customerName = typeof req.body.customerName === "string" ? req.body.customerName.trim() : "";
+    const customerPhone = typeof req.body.customerPhone === "string" ? req.body.customerPhone.trim() : "";
+    const deliveryAddress = typeof req.body.deliveryAddress === "string" ? req.body.deliveryAddress.trim() : "";
+    const orderNote = typeof req.body.orderNote === "string" ? req.body.orderNote.trim() : "";
 
     if (!Number.isInteger(productId) || productId <= 0) {
       return res.status(400).json({
@@ -87,6 +95,24 @@ router.post("/", requireRole("user"), async (req, res, next) => {
     if (!paymentMethods.includes(paymentMethod)) {
       return res.status(400).json({
         message: "Choose GCash or Cash on Delivery."
+      });
+    }
+
+    if (!customerName) {
+      return res.status(400).json({
+        message: "Customer name is required."
+      });
+    }
+
+    if (!customerPhone) {
+      return res.status(400).json({
+        message: "Phone number is required."
+      });
+    }
+
+    if (!deliveryAddress) {
+      return res.status(400).json({
+        message: "Delivery address is required."
       });
     }
 
@@ -140,9 +166,13 @@ router.post("/", requireRole("user"), async (req, res, next) => {
           total_amount,
           payment_method,
           status,
+          customer_name,
+          customer_phone,
+          delivery_address,
+          order_note,
           purchase_insight
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11, $12)
         RETURNING *
       `,
       [
@@ -153,6 +183,10 @@ router.post("/", requireRole("user"), async (req, res, next) => {
         unitPrice,
         totalAmount,
         paymentMethod,
+        customerName,
+        customerPhone,
+        deliveryAddress,
+        orderNote || null,
         JSON.stringify(purchaseInsight)
       ]
     );
@@ -201,7 +235,7 @@ router.patch("/:id/status", requireRole("admin"), async (req, res, next) => {
 
     if (!orderStatuses.includes(status)) {
       return res.status(400).json({
-        message: "Status must be pending, preparing, completed, or cancelled."
+        message: "Status must be pending, preparing, delivery, completed, or cancelled."
       });
     }
 

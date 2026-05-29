@@ -45,6 +45,11 @@
     </main>
 
     <main class="layout" id="appView" hidden>
+      <nav class="app-nav" aria-label="Main views">
+        <button class="nav-button active" id="productsNavButton" type="button" data-view="products">Products</button>
+        <button class="nav-button" id="ordersNavButton" type="button" data-view="orders">Orders</button>
+      </nav>
+
       <section class="summary-grid" aria-label="Inventory summary">
         <article class="metric" id="totalProductsMetric">
           <span class="metric-label" id="totalProductsLabel">Products</span>
@@ -64,7 +69,7 @@
         </article>
       </section>
 
-      <section class="workspace">
+      <section class="workspace" id="productsView">
         <div class="inventory-panel">
           <div class="toolbar">
             <label class="field search-field">
@@ -177,7 +182,7 @@
         </aside>
       </section>
 
-      <section class="orders-panel" id="ordersPanel">
+      <section class="orders-panel" id="ordersPanel" hidden>
         <div class="section-heading">
           <div>
             <p class="eyebrow" id="ordersEyebrow">Orders</p>
@@ -189,6 +194,8 @@
             <thead>
               <tr>
                 <th id="orderCustomerHeader">Customer</th>
+                <th id="orderContactHeader">Contact</th>
+                <th id="orderAddressHeader">Address</th>
                 <th>Date</th>
                 <th>Product</th>
                 <th>Qty</th>
@@ -259,6 +266,28 @@
           </label>
         </fieldset>
 
+        <div class="checkout-details" id="checkoutDetails">
+          <label class="field">
+            <span>Full Name</span>
+            <input id="customerNameInput" type="text" autocomplete="name" placeholder="Juan Dela Cruz" />
+          </label>
+
+          <label class="field">
+            <span>Phone Number</span>
+            <input id="customerPhoneInput" type="tel" autocomplete="tel" placeholder="09XXXXXXXXX" />
+          </label>
+
+          <label class="field">
+            <span>Delivery Address</span>
+            <textarea id="deliveryAddressInput" rows="3" autocomplete="street-address" placeholder="House no., street, barangay, city"></textarea>
+          </label>
+
+          <label class="field">
+            <span>Order Note</span>
+            <textarea id="orderNoteInput" rows="2" placeholder="Optional delivery note"></textarea>
+          </label>
+        </div>
+
         <label class="field">
           <span>Remarks</span>
           <textarea id="stockRemarksInput" rows="3" placeholder="Delivery, sale, correction, etc."></textarea>
@@ -271,6 +300,6 @@
       </form>
     </dialog>
 
-    <script src="/app.js?v=20260529-orders"></script>
+    <script src="/app.js?v=20260529-delivery-orders"></script>
   </body>
 </html>
